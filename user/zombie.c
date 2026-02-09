@@ -8,6 +8,8 @@
 int
 main(void)
 {
+  //print PID in a new line
+  printf("Process ID: %d\n",getpid());
   if(fork() > 0)
     sleep(5);  // Let child exit before parent.
   exit(0);

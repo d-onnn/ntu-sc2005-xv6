@@ -91,3 +91,10 @@ sys_uptime(void)
   release(&tickslock);
   return xticks;
 }
+
+//for get_proccount
+uint64
+sys_getproccount(void)
+{
+  return getproccount();
+}
