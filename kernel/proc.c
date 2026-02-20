@@ -281,12 +281,16 @@ fork(void)
 {
   int i, pid;
   struct proc *np;
-  struct proc *p = myproc();
-
+  struct proc *p = myproc();  //get current parent process
+  
+  // printf("Fork called\n");//added line
+  // printf("Parent PID: %d\n", p->pid); //before child created
   // Allocate process.
   if((np = allocproc()) == 0){
     return -1;
   }
+  // Now that np is allocated, print child PID
+  //printf("Child PID: %d\n", np->pid);  // Now it's safe to print np->pid
 
   // Copy user memory from parent to child.
   if(uvmcopy(p->pagetable, np->pagetable, p->sz) < 0){
@@ -458,23 +462,36 @@ scheduler(void)
     intr_off();
 
     int found = 0;
+    // ===== First pass: EVEN PID =====
     for(p = proc; p < &proc[NPROC]; p++) {
       acquire(&p->lock);
-      if(p->state == RUNNABLE) {
-        // Switch to chosen process.  It is the process's job
-        // to release its lock and then reacquire it
-        // before jumping back to us.
+      if(p->state == RUNNABLE && p->pid % 2 == 0) {
         p->state = RUNNING;
         c->proc = p;
         swtch(&c->context, &p->context);
 
-        // Process is done running for now.
-        // It should have changed its p->state before coming back.
         c->proc = 0;
         found = 1;
       }
       release(&p->lock);
     }
+
+    // ===== Second pass: ODD PID =====
+    for(p = proc; p < &proc[NPROC]; p++) {
+      acquire(&p->lock);
+      if(p->state == RUNNABLE && p->pid % 2 != 0) {
+        p->state = RUNNING;
+        c->proc = p;
+        swtch(&c->context, &p->context);
+
+        c->proc = 0;
+        found = 1;
+      }
+      release(&p->lock);
+    }
+
+
+
     if(found == 0) {
       // nothing to run; stop running on this core until an interrupt.
       asm volatile("wfi");

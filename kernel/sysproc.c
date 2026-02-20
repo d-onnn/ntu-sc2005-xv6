@@ -91,3 +91,36 @@ sys_uptime(void)
   release(&tickslock);
   return xticks;
 }
+
+extern struct proc proc[NPROC];
+uint64
+sys_getprocs(void)
+{
+    uint64 addr;   // user pointer
+  int max;
+
+  argaddr(0, &addr);
+  argint(1, &max);
+
+  struct proc *p;
+  struct uproc up;
+  int count = 0;
+
+  for(p = proc; p < &proc[NPROC] && count < max; p++) {
+    if(p->state != UNUSED) {
+
+      up.pid = p->pid;
+      up.state = p->state;
+
+      if(copyout(myproc()->pagetable,
+                 addr + count*sizeof(struct uproc),
+                 (char*)&up,
+                 sizeof(struct uproc)) < 0)
+        return -1;
+
+      count++;
+    }
+  }
+
+  return count;   // return number of processes copied
+}
