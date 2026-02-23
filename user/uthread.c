@@ -10,16 +10,35 @@
 #define STACK_SIZE  8192
 #define MAX_THREAD  4
 
+struct context {
+  uint64 ra;
+  uint64 sp;
+
+  //callee-saved register (RISC-V ABI)
+  uint64 s0;
+  uint64 s1;
+  uint64 s2;
+  uint64 s3;
+  uint64 s4;
+  uint64 s5;
+  uint64 s6;
+  uint64 s7;
+  uint64 s8;
+  uint64 s9;
+  uint64 s10;
+  uint64 s11;
+};
 
 struct thread {
   char       stack[STACK_SIZE]; /* the thread's stack */
   int        state;             /* FREE, RUNNING, RUNNABLE */
-  // TODO: include context of thread
+  struct context context;
 };
 struct thread all_thread[MAX_THREAD];
 struct thread *current_thread;
-extern void thread_switch(uint64, uint64);
-              
+//extern void thread_switch(uint64, uint64);	#old 
+extern void thread_switch(struct context*, struct context*);  
+            
 void 
 thread_init(void)
 {
@@ -56,9 +75,10 @@ thread_schedule(void)
   if (current_thread != next_thread) {         /* switch threads?  */
     next_thread->state = RUNNING;
     t = current_thread;
+    t->state = RUNNABLE;	//for scheduler to pick it up, else old thread remains as RUNNING causing system to break
     current_thread = next_thread;
     // TODO: invoke thread_switch to switch from t to next_thread:
-    // thread_switch(??, ??);
+    thread_switch(&t->context, &next_thread->context);
   } else
     next_thread = 0;
 }
@@ -73,7 +93,11 @@ thread_create(void (*func)())
   }
   t->state = RUNNABLE;
   // TODO: ensure `func` will be executed on its own stack
-  // ...
+  
+  //stak grows downwards
+  t->context.sp = (uint64)(t->stack + STACK_SIZE);
+  //first return jumps to function
+  t->context.ra = (uint64)func;
 }
 
 void 
@@ -86,4 +110,5 @@ thread_yield(void)
 void thread_exit(void) {
   current_thread->state = FREE;
   thread_schedule();
+  while(1);	//shd never return
 }
