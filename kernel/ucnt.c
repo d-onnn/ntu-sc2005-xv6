@@ -22,5 +22,3 @@ int ucnt_get(int idx) {
     int val = ucnt[idx];
     return val;
 }
-
-

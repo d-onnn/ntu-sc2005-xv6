@@ -31,15 +31,19 @@ void sem_basic() {
 void do_work(int pid, int semid) {
     for (int i = 0; i < N; i++) {
         // TODO: increment a shared counter, making sure to use avoid race condition.
+        sem_wait(semid); // lock 
+        int val = ucnt_get(0); 
+        ucnt_set(0, val + 1); 
+        sem_signal(semid); // unlock
         // Tip: use a semaphore.
-        int val = ucnt_get(0);
-        ucnt_set(0, val + 1);
     }
 }
 
 void race_test() {
     ucnt_set(0, 0);
-    int semid = -1; // TODO: create semaphore properly
+    int semid = sem_init(1); // TODO: create semaphore properly as a mutex
+    T_ASSERT(semid >= 0);
+
 
     int pid = fork();
     T_ASSERT(pid >= 0);
@@ -60,13 +64,20 @@ void race_test() {
 
 struct buf_sem {
     // TODO: add semaphores as required
+    int mutex;  // binary semaphore for buffer access
+    int full;   // counting semaphore for items available
+    int empty;  // counting semaphore for free slots
 };
 
 void consumer(struct buf_sem b, int loops, int valid[]) {
     char tmp;
     for(int i = 0; i < loops; i++) {
         // TODO: wait buffer slot full and signal empty slot 
-        tmp = ubuf_read();
+        sem_wait(b.full);    // wait for an available item
+        sem_wait(b.mutex);   // lock buffer for reading
+        tmp = ubuf_read();   // read one byte
+        sem_signal(b.mutex); // unlock buffer
+        sem_signal(b.empty); // signal a free slot
         T_ASSERT(valid[(unsigned char)tmp]);
     }
 }
@@ -74,7 +85,11 @@ void consumer(struct buf_sem b, int loops, int valid[]) {
 void producer(const char* msg, struct buf_sem b) {
     for (const char* p = msg; *p != '\0'; p++) {
         // TODO: wait buffer slot emtpy and signal used slot
-        ubuf_write(*p);
+        sem_wait(b.empty);   // wait for a free slot
+        sem_wait(b.mutex);   // lock buffer for writing
+        ubuf_write(*p);      // write one byte
+        sem_signal(b.mutex); // unlock buffer
+        sem_signal(b.full);  // signal an item is available
     }
 }
 
@@ -87,9 +102,13 @@ void producer_consumer() {
         unsigned char uc = (unsigned char)*p;
         valid[uc] = 1;
     }
-
+    
+    #define BUF_SIZE 16
     struct buf_sem b;
     // TODO init semaphores as required
+    b.mutex = sem_init(1);        // binary semaphore for buffer access
+    b.full  = sem_init(0);        // initially, no items in buffer
+    b.empty = sem_init(BUF_SIZE); // all slots are free
 
     for (int i = 0; i < NUM_PROD; i++) {
         int pid = fork();
@@ -106,6 +125,9 @@ void producer_consumer() {
     }
     printf("[producer_consumer] PASS: message delivered\n");
     // TODO clean-up semaphores
+    sem_free(b.mutex);
+    sem_free(b.full);
+    sem_free(b.empty);
 }
 
 
