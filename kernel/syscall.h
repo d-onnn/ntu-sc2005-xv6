@@ -35,3 +35,6 @@
 #define SYS_sem_signal      28
 #define SYS_sem_getvalue    29
 #define SYS_sem_free        30
+
+#define SYS_countvp         31
+#define SYS_countpp         32

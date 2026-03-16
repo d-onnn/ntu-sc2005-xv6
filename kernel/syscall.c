@@ -114,6 +114,8 @@ extern uint64 sys_sem_wait(void);
 extern uint64 sys_sem_signal(void);
 extern uint64 sys_sem_getvalue(void);
 extern uint64 sys_sem_free(void);
+extern uint64 sys_countvp(void);
+extern uint64 sys_countpp(void);
 
 // An array mapping syscall numbers from syscall.h
 // to the function that handles the system call.
@@ -148,6 +150,9 @@ static uint64 (*syscalls[])(void) = {
 [SYS_sem_signal] sys_sem_signal,
 [SYS_sem_getvalue] sys_sem_getvalue,
 [SYS_sem_free] sys_sem_free,
+[SYS_countvp]  sys_countvp,
+[SYS_countpp]  sys_countpp,
+
 };
 
 void

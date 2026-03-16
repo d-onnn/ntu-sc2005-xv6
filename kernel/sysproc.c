@@ -149,3 +149,30 @@ uint64 sys_sem_free(void) {
   argint(0, &semid);
   return sem_free(semid);
 }
+
+//added for lab 4
+uint64
+sys_countvp(void) {
+    struct proc *p = myproc();
+    // TODO: traverse p->pagetable to count virtual pages
+    int count = 0;
+    // loop over all PTEs in the user space
+    for (uint64 va = 0; va < p->sz; va += PGSIZE) {
+        pte_t *pte = walk(p->pagetable, va, 0);
+        if (pte)
+            count++;
+    }
+    return count;
+}
+
+uint64
+sys_countpp(void) {
+    struct proc *p = myproc();
+    int count = 0;
+    for (uint64 va = 0; va < p->sz; va += PGSIZE) {
+        pte_t *pte = walk(p->pagetable, va, 0);
+        if (pte && (*pte & PTE_V))
+            count++;
+    }
+    return count;
+}
