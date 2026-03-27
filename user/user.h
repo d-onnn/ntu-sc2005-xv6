@@ -28,6 +28,9 @@ int uptime(void);
 // Counter 
 void ucnt_set(int idx, int val);
 int ucnt_get(int idx);
+//added for Lab4
+int countvp(void);
+int countpp(void);
 
 // Buffer 
 #define UBUF_SIZE 16

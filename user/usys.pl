@@ -45,3 +45,5 @@ entry("sem_wait");
 entry("sem_signal");
 entry("sem_getvalue");
 entry("sem_free");
+entry("countvp");
+entry("countpp");

@@ -145,7 +145,9 @@ UPROGS=\
 	$U/_grind\
 	$U/_wc\
 	$U/_zombie\
-	$U/_race_test
+	$U/_race_test\
+	$U/_checkpages\
+	$U/_fault
 
 fs.img: mkfs/mkfs README $(UPROGS)
 	mkfs/mkfs fs.img README $(UPROGS)
