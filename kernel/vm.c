@@ -449,3 +449,18 @@ copyinstr(pagetable_t pagetable, char *dst, uint64 srcva, uint64 max)
     return -1;
   }
 }
+/*
+//addded for lab 4 
+//Update page table with empty PTE
+int
+setup_empty_pages(pagetable_t pagetable, uint64 start, uint64 end)
+{
+    for(uint64 va = PGROUNDDOWN(start); va < end; va += PGSIZE){
+        pte_t *pte = walk(pagetable, va, 1);
+        if(pte == 0)
+            return -1;
+        *pte = 0;          // no physical page mapped
+    }
+    return 0;
+}
+*/

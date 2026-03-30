@@ -34,7 +34,7 @@ sys_wait(void)
   argaddr(0, &p);
   return wait(p);
 }
-
+/* //original 
 uint64
 sys_sbrk(void)
 {
@@ -46,6 +46,18 @@ sys_sbrk(void)
   if(growproc(n) < 0)
     return -1;
   return addr;
+}*/
+uint64
+sys_sbrk(void)
+{
+    struct proc *p = myproc();
+    int n;
+    if(argint(0, &n) < 0)
+        return -1;
+
+    uint64 addr = p->sz;   // old program break
+    p->sz += n;            // grow virtual size only
+    return addr;           // return old break
 }
 
 uint64

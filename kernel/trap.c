@@ -69,10 +69,37 @@ usertrap(void)
     // ok
 
   } else if(r_scause() == 13 || r_scause() == 15){
+    ////before change
     //✅ ADD THIS BLOCK
-    printf("Page fault! VA = 0x%lx pid=%d\n", r_stval(), p->pid);
-    setkilled(p);
+    //printf("Page fault! VA = 0x%lx pid=%d\n", r_stval(), p->pid);
+    //setkilled(p);
 
+    //LAST EXCECISE LAB4
+    uint64 va = r_stval();
+    struct proc *p = myproc();
+  
+    // ❌ invalid access → kill
+    if(va >= p->sz || va < 0){
+      printf("Invalid page fault VA=0x%lx\n", va);
+      setkilled(p);
+    } else {
+      // ✅ demand paging
+      uint64 a = PGROUNDDOWN(va);
+
+      char *mem = kalloc();
+      if(mem == 0){
+        printf("kalloc failed\n");
+        setkilled(p);
+      } else {
+        memset(mem, 0, PGSIZE);
+
+        if(mappages(p->pagetable, a, PGSIZE,
+                  (uint64)mem,
+                  PTE_R | PTE_W | PTE_U) != 0){
+          kfree(mem);
+          setkilled(p);
+        }
+      }  
   } else {
     printf("usertrap(): unexpected scause 0x%lx pid=%d\n", r_scause(), p->pid);
     printf("            sepc=0x%lx stval=0x%lx\n", r_sepc(), r_stval());
