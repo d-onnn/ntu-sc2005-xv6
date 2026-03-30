@@ -52,8 +52,7 @@ sys_sbrk(void)
 {
     struct proc *p = myproc();
     int n;
-    if(argint(0, &n) < 0)
-        return -1;
+    argint(0, &n);
 
     uint64 addr = p->sz;   // old program break
     p->sz += n;            // grow virtual size only
