@@ -5,7 +5,7 @@
 #include "riscv.h"
 #include "defs.h"
 #include "fs.h"
-
+#include "vm.h"
 /*
  * the kernel's page table.
  */
@@ -187,7 +187,8 @@ uvmunmap(pagetable_t pagetable, uint64 va, uint64 npages, int do_free)
     if((pte = walk(pagetable, a, 0)) == 0)
       panic("uvmunmap: walk");
     if((*pte & PTE_V) == 0)
-      panic("uvmunmap: not mapped");
+      //panic("uvmunmap: not mapped");
+      continue;
     if(PTE_FLAGS(*pte) == PTE_V)
       panic("uvmunmap: not a leaf");
     if(do_free){
@@ -449,7 +450,7 @@ copyinstr(pagetable_t pagetable, char *dst, uint64 srcva, uint64 max)
     return -1;
   }
 }
-/*
+
 //addded for lab 4 
 //Update page table with empty PTE
 int
@@ -459,8 +460,7 @@ setup_empty_pages(pagetable_t pagetable, uint64 start, uint64 end)
         pte_t *pte = walk(pagetable, va, 1);
         if(pte == 0)
             return -1;
-        *pte = 0;          // no physical page mapped
+        *pte = PTE_U;          // no physical page mapped
     }
     return 0;
 }
-*/

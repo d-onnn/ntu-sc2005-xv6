@@ -5,6 +5,7 @@
 #include "memlayout.h"
 #include "spinlock.h"
 #include "proc.h"
+#include "vm.h"
 
 uint64
 sys_exit(void)
@@ -47,6 +48,7 @@ sys_sbrk(void)
     return -1;
   return addr;
 }*/
+/*
 uint64
 sys_sbrk(void)
 {
@@ -57,6 +59,27 @@ sys_sbrk(void)
     uint64 addr = p->sz;   // old program break
     p->sz += n;            // grow virtual size only
     return addr;           // return old break
+}
+*/
+// forward declaration for demand paging helper
+int setup_empty_pages(pagetable_t pagetable, uint64 start, uint64 end);
+uint64
+sys_sbrk(void)
+{
+    int n;
+    argint(0, &n);
+    struct proc *p = myproc();
+    uint64 addr = p->sz;      // old break
+
+    // increase virtual size
+    uint64 newsz = p->sz + n;
+
+    // set up empty pages in the page table (demand paging)
+    if(setup_empty_pages(p->pagetable, p->sz, newsz) < 0)
+        return -1;
+
+    p->sz = newsz;            // update proc size
+    return addr;
 }
 
 uint64

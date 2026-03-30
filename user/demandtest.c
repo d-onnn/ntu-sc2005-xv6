@@ -4,12 +4,12 @@
 int
 main(void)
 {
-    sbrk(4096 * 30);   // reserve 30 pages
+    // Reserve 30 pages of heap and get pointer to start
+    char *p = (char*)sbrk(4096 * 30);  
 
     printf("Before touching pages: %d\n", countpp());
 
-    char *p = (char*)sbrk(0);
-
+    
     for(int i = 0; i < 30; i++){
         p[i * 4096] = 1;   // trigger page fault
     }
